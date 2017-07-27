@@ -9,4 +9,6 @@ public interface CategoriaServiceInterface {
 	List<Categoria> buscarTodos();
 	Categoria salvarCategoria(Categoria categoria);
 	Categoria buscarCategoria(Long cat_id);
+	Categoria atualizarCategoria(Categoria categoria);
+	void deletarCategoria(Categoria categoria);
 }

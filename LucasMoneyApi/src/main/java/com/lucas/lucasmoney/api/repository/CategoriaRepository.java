@@ -8,4 +8,5 @@ import com.lucas.lucasmoney.api.model.Categoria;
 
 public interface CategoriaRepository extends JpaRepository<Categoria, Long>{
 	List<Categoria> findAllByOrderByNomeAsc();
+	Categoria findOneByNome(String nome);
 }

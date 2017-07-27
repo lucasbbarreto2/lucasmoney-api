@@ -6,6 +6,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 @Entity
 @Table(name = "categoria")
 public class Categoria {
@@ -14,7 +16,28 @@ public class Categoria {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+	@NotEmpty(message = "Nome da categoria não pode ser nulo")
 	private String nome;
+	
+	public Categoria(Long id, String nome) {
+		super();
+		this.id = id;
+		this.nome = nome;
+	}
+
+	public Categoria(String nome) {
+		super();
+		this.nome = nome;
+	}
+
+	public Categoria(Long id) {
+		super();
+		this.id = id;
+	}
+
+	public Categoria() {
+		super();
+	}
 
 	public Long getId() {
 		return id;

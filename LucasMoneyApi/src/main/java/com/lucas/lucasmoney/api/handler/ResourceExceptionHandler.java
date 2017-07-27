@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.lucas.lucasmoney.api.model.DetalhesErro;
 import com.lucas.lucasmoney.api.service.exception.CategoriaNaoEncontradaException;
+import com.lucas.lucasmoney.api.service.exception.IdDeCategoriaJaExistenteException;
 
 @ControllerAdvice
 public class ResourceExceptionHandler {
@@ -21,5 +22,16 @@ public class ResourceExceptionHandler {
 				System.currentTimeMillis(), "404 NOT FOUND");
 		
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+	}
+	
+	@ExceptionHandler(IdDeCategoriaJaExistenteException.class)
+	public ResponseEntity<DetalhesErro> handleIdDeCategoriaJaExistenteException(
+			IdDeCategoriaJaExistenteException e, HttpServletRequest request){
+		
+		DetalhesErro erro = new DetalhesErro("ID de Categoria já encontrado, impossível gravar, utilizar"
+				+ "o método PUT para atualizar a categoria ou utilizar outro ID.", 409L,
+				System.currentTimeMillis(), "409 CONFLITO ERRO AO GRAVAR NOVA CATEGORIA COM MESMO CÓDIGO");
+		
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
 	}
 }

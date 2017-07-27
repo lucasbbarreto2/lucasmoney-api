@@ -45,4 +45,24 @@ public class CategoriaResource {
 		CacheControl cache = CacheControl.maxAge(1, TimeUnit.MINUTES);
 		return ResponseEntity.status(HttpStatus.OK).cacheControl(cache).body(categoria);
 	}
+	
+	@RequestMapping(method = RequestMethod.PUT)
+	public ResponseEntity<Void> atualizarCategoria(@RequestBody Categoria categoria){
+		Categoria categoriaAtualizada = categoriaService.atualizarCategoria(categoria);
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+				.path("{id}").buildAndExpand(categoriaAtualizada.getId()).toUri();
+		return ResponseEntity.created(location).build();
+	}
+	
+	@RequestMapping(method = RequestMethod.DELETE)
+	public ResponseEntity<Void> deletarCategoria(@RequestBody Categoria categoria){
+		categoriaService.deletarCategoria(categoria);
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+	
+	@RequestMapping(value = "/{cat_id}", method = RequestMethod.DELETE)
+	public ResponseEntity<Void> deletarCategoriaPorId(@PathVariable("cat_id") Long cat_id){
+		categoriaService.deletarCategoria(new Categoria(cat_id));
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
 }
