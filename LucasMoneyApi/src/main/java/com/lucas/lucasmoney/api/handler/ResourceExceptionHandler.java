@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.lucas.lucasmoney.api.model.DetalhesErro;
+import com.lucas.lucasmoney.api.service.exception.CategoriaJaExistenteException;
 import com.lucas.lucasmoney.api.service.exception.CategoriaNaoEncontradaException;
 import com.lucas.lucasmoney.api.service.exception.IdDeCategoriaJaExistenteException;
 
@@ -31,6 +32,16 @@ public class ResourceExceptionHandler {
 		DetalhesErro erro = new DetalhesErro("ID de Categoria já encontrado, impossível gravar, utilizar"
 				+ "o método PUT para atualizar a categoria ou utilizar outro ID.", 409L,
 				System.currentTimeMillis(), "409 CONFLITO ERRO AO GRAVAR NOVA CATEGORIA COM MESMO CÓDIGO");
+		
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
+	}
+	
+	@ExceptionHandler(CategoriaJaExistenteException.class)
+	public ResponseEntity<DetalhesErro> handleCategoriaJaExistenteException(
+			CategoriaJaExistenteException e, HttpServletRequest request){
+		
+		DetalhesErro erro = new DetalhesErro("Já existe categoria com o mesmo nome", 409L,
+				System.currentTimeMillis(), "409 CONFLITO ERRO AO GRAVAR NOVA CATEGORIA COM MESMO NOME");
 		
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
 	}

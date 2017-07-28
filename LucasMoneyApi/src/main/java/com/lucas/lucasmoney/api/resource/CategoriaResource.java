@@ -32,11 +32,11 @@ public class CategoriaResource {
 	}
 	
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Void> salvarCategoria(@RequestBody Categoria categoria){
+	public ResponseEntity<Categoria> salvarCategoria(@RequestBody Categoria categoria){
 		Categoria categoriaCriada = categoriaService.salvarCategoria(categoria);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("/{id}").buildAndExpand(categoriaCriada.getId()).toUri();
-		return ResponseEntity.created(location).build();
+		return ResponseEntity.created(location).body(categoriaCriada);
 	}
 	
 	@RequestMapping(value = "/{cat_id}", method = RequestMethod.GET)
@@ -47,11 +47,11 @@ public class CategoriaResource {
 	}
 	
 	@RequestMapping(method = RequestMethod.PUT)
-	public ResponseEntity<Void> atualizarCategoria(@RequestBody Categoria categoria){
+	public ResponseEntity<Categoria> atualizarCategoria(@RequestBody Categoria categoria){
 		Categoria categoriaAtualizada = categoriaService.atualizarCategoria(categoria);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("{id}").buildAndExpand(categoriaAtualizada.getId()).toUri();
-		return ResponseEntity.created(location).build();
+		return ResponseEntity.created(location).body(categoriaAtualizada);
 	}
 	
 	@RequestMapping(method = RequestMethod.DELETE)

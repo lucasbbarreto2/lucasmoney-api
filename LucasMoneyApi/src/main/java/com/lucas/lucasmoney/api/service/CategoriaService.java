@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.lucas.lucasmoney.api.model.Categoria;
 import com.lucas.lucasmoney.api.repository.CategoriaRepository;
+import com.lucas.lucasmoney.api.service.exception.CategoriaJaExistenteException;
 import com.lucas.lucasmoney.api.service.exception.CategoriaNaoEncontradaException;
 import com.lucas.lucasmoney.api.service.exception.IdDeCategoriaJaExistenteException;
 
@@ -23,10 +24,18 @@ public class CategoriaService implements CategoriaServiceInterface {
 
 	@Override
 	public Categoria salvarCategoria(Categoria categoria) {
-		if(buscarCategoria(categoria.getId())!=null)
-			throw new IdDeCategoriaJaExistenteException();
-		categoria.setId(null);
-		return categoriaRepository.save(categoria);
+		try{
+			if(buscarCategoria(categoria.getId())!=null)
+				throw new IdDeCategoriaJaExistenteException();
+		}catch(CategoriaNaoEncontradaException e){
+			try{
+				if(buscarCategoria(categoria.getNome())!=null)
+					throw new CategoriaJaExistenteException();
+			}catch(CategoriaNaoEncontradaException n){
+				return categoriaRepository.save(categoria);
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -38,11 +47,24 @@ public class CategoriaService implements CategoriaServiceInterface {
 			throw new CategoriaNaoEncontradaException();
 		return categoria;
 	}
-
+	
+	private Categoria buscarCategoria(String nome) throws CategoriaNaoEncontradaException{
+		Categoria categoria = categoriaRepository.findOneByNome(nome);
+		if(categoria != null)
+			return categoria;
+		else
+			throw new CategoriaNaoEncontradaException();
+	}
+	
 	@Override
 	public Categoria atualizarCategoria(Categoria categoria) {
-		if(categoria.getId() != null && buscarCategoria(categoria.getId()) != null)
-			return categoriaRepository.save(categoria);
+		if(buscarCategoria(categoria.getId())!=null)
+			try{
+				if(buscarCategoria(categoria.getNome())!=null)
+					throw new CategoriaJaExistenteException();
+			}catch(CategoriaNaoEncontradaException e){
+				return categoriaRepository.save(categoria);
+			}
 		throw new CategoriaNaoEncontradaException();
 	}
 	
@@ -56,15 +78,5 @@ public class CategoriaService implements CategoriaServiceInterface {
 			categoriaRepository.delete(obj);
 		}
 	}
-
-
-	private Categoria buscarCategoria(String nome) throws CategoriaNaoEncontradaException{
-		Categoria categoria = categoriaRepository.findOneByNome(nome);
-		if(categoria != null)
-			return categoria;
-		else
-			throw new CategoriaNaoEncontradaException();
-	}
-	
 	
 }
