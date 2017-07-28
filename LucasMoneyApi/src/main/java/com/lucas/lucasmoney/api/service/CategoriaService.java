@@ -3,11 +3,11 @@ package com.lucas.lucasmoney.api.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.lucas.lucasmoney.api.model.Categoria;
 import com.lucas.lucasmoney.api.repository.CategoriaRepository;
-import com.lucas.lucasmoney.api.service.exception.CategoriaJaExistenteException;
 import com.lucas.lucasmoney.api.service.exception.CategoriaNaoEncontradaException;
 import com.lucas.lucasmoney.api.service.exception.IdDeCategoriaJaExistenteException;
 
@@ -26,16 +26,12 @@ public class CategoriaService implements CategoriaServiceInterface {
 	public Categoria salvarCategoria(Categoria categoria) {
 		try{
 			if(buscarCategoria(categoria.getId())!=null)
-				throw new IdDeCategoriaJaExistenteException();
+				throw new IdDeCategoriaJaExistenteException("ID já existente, impossível gravar");
 		}catch(CategoriaNaoEncontradaException e){
-			try{
-				if(buscarCategoria(categoria.getNome())!=null)
-					throw new CategoriaJaExistenteException();
-			}catch(CategoriaNaoEncontradaException n){
-				return categoriaRepository.save(categoria);
-			}
+			return salvar(categoria);
 		}
 		return null;
+		
 	}
 
 	@Override
@@ -48,7 +44,7 @@ public class CategoriaService implements CategoriaServiceInterface {
 		return categoria;
 	}
 	
-	private Categoria buscarCategoria(String nome) throws CategoriaNaoEncontradaException{
+	public Categoria buscarCategoria(String nome) throws CategoriaNaoEncontradaException{
 		Categoria categoria = categoriaRepository.findOneByNome(nome);
 		if(categoria != null)
 			return categoria;
@@ -59,12 +55,7 @@ public class CategoriaService implements CategoriaServiceInterface {
 	@Override
 	public Categoria atualizarCategoria(Categoria categoria) {
 		if(buscarCategoria(categoria.getId())!=null)
-			try{
-				if(buscarCategoria(categoria.getNome())!=null)
-					throw new CategoriaJaExistenteException();
-			}catch(CategoriaNaoEncontradaException e){
-				return categoriaRepository.save(categoria);
-			}
+			return salvar(categoria);
 		throw new CategoriaNaoEncontradaException();
 	}
 	
@@ -76,6 +67,14 @@ public class CategoriaService implements CategoriaServiceInterface {
 		}catch (CategoriaNaoEncontradaException e) {
 			Categoria obj = buscarCategoria(categoria.getNome());
 			categoriaRepository.delete(obj);
+		}
+	}
+	
+	private Categoria salvar(Categoria categoria){
+		try{
+			return categoriaRepository.save(categoria);
+		}catch(DataIntegrityViolationException e){
+			throw new DataIntegrityViolationException("Nome de Categoria já existente, impossível gravar");
 		}
 	}
 	

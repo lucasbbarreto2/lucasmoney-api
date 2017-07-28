@@ -18,7 +18,7 @@ public class CategoriaNaoEncontradaException extends RuntimeException {
 	}
 
 	public CategoriaNaoEncontradaException() {
-		super();
+		super("Categoria não pode ser encontrada");
 		// TODO Auto-generated constructor stub
 	}
 	
