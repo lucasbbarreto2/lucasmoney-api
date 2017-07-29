@@ -66,7 +66,7 @@ public class ResourceExceptionHandler {
 		
 		DetalhesErro erro = new DetalhesErro("404 PARAMETROS INVÁLIDOS",
 				404L, LocalDateTime.now().toString(),
-				buscaMensagemErro(e.getBindingResult()),//.getFieldError().getDefaultMessage(),//e.getMessage(),
+				buscaMensagemErro(e.getBindingResult()),
 				request.getServletPath(), request.getMethod(), 
 				buscaCamposErro(e.getBindingResult()).toArray(new String[0]));
 		
