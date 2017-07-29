@@ -1,10 +1,18 @@
 package com.lucas.lucasmoney.api.handler;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -19,7 +27,8 @@ public class ResourceExceptionHandler {
 			CategoriaNaoEncontradaException e, HttpServletRequest request){
 		
 		DetalhesErro erro = new DetalhesErro("404 CATEGORIA NÃO ENCONTRADA", 404L,
-				System.currentTimeMillis(), e.getMessage(),
+				LocalDateTime.now().toString(), 
+				Arrays.asList(e.getMessage()),
 				request.getServletPath(), request.getMethod());
 		
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
@@ -30,7 +39,8 @@ public class ResourceExceptionHandler {
 			IdDeCategoriaJaExistenteException e, HttpServletRequest request){
 		
 		DetalhesErro erro = new DetalhesErro("409 CONFLITO AO GRAVAR NOVA CATEGORIA COM MESMO CÓDIGO",
-				409L, System.currentTimeMillis(), e.getMessage(),
+				409L, LocalDateTime.now().toString(), 
+				Arrays.asList(e.getMessage()),
 				request.getServletPath(),request.getMethod());
 		
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
@@ -41,29 +51,64 @@ public class ResourceExceptionHandler {
 	public ResponseEntity<DetalhesErro> handleDataIntegrityViolationException(
 			DataIntegrityViolationException e, HttpServletRequest request){
 		
+		
 		DetalhesErro erro = new DetalhesErro("409 CONFLITO DE INTEGRIDADE DE DADOS",
-				409L, System.currentTimeMillis(),e.getMessage(),
+				409L, LocalDateTime.now().toString(),
+				Arrays.asList(e.getMessage()),
 				request.getServletPath(), request.getMethod());
 		
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
-	} 
+	}
+	
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<DetalhesErro> handleMethodArgumentNotValidException(
+			MethodArgumentNotValidException e, HttpServletRequest request){
+		
+		DetalhesErro erro = new DetalhesErro("404 PARAMETROS INVÁLIDOS",
+				404L, LocalDateTime.now().toString(),
+				buscaMensagemErro(e.getBindingResult()),//.getFieldError().getDefaultMessage(),//e.getMessage(),
+				request.getServletPath(), request.getMethod(), 
+				buscaCamposErro(e.getBindingResult()).toArray(new String[0]));
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+	}
+	
+	private List<String> buscaCamposErro(BindingResult bindResult){
+		List<String> listaErro = new ArrayList<>();
+		
+		for(FieldError fieldErro : bindResult.getFieldErrors())
+			listaErro.add(fieldErro.getField());
+		
+		return listaErro;
+	}
+	
+	private List<String> buscaMensagemErro(BindingResult bindResult){
+		List<String> listaErro = new ArrayList<>();
+		
+		for(FieldError fieldErro : bindResult.getFieldErrors())
+			listaErro.add(fieldErro.getDefaultMessage());
+		
+		return listaErro;
+	}
 	
 	private class DetalhesErro{
 		private String titulo;
 		private Long status;
-		private Long timestamp;
-		private String mensagem;
+		private String timestamp;
+		private List<String> mensagens;
 		private String path;
 		private String metodoHttp;
+		private String[] camposErro;
 		
-		public DetalhesErro(String titulo, Long status, Long timestamp, String mensagem,
-				String path, String metodoHttp) {
+		public DetalhesErro(String titulo, Long status, String timestamp, List<String> mensagens,
+				String path, String metodoHttp, String... campos) {
 			this.titulo = titulo;
 			this.status = status;
 			this.timestamp = timestamp;
-			this.mensagem = mensagem;
+			this.mensagens = mensagens;
 			this.path = path;
 			this.metodoHttp = metodoHttp;
+			this.camposErro = campos;
 		}
 		
 		@SuppressWarnings("unused")
@@ -83,20 +128,20 @@ public class ResourceExceptionHandler {
 			this.status = status;
 		}
 		@SuppressWarnings("unused")
-		public Long getTimestamp() {
+		public String getTimestamp() {
 			return timestamp;
 		}
 		@SuppressWarnings("unused")
-		public void setTimestamp(Long timestamp) {
+		public void setTimestamp(String timestamp) {
 			this.timestamp = timestamp;
 		}
 		@SuppressWarnings("unused")
-		public String getMensagem() {
-			return mensagem;
+		public List<String> getMensagens() {
+			return mensagens;
 		}
 		@SuppressWarnings("unused")
-		public void setMensagem(String mensagem) {
-			this.mensagem = mensagem;
+		public void setMensagens(List<String> mensagens) {
+			this.mensagens = mensagens;
 		}
 		@SuppressWarnings("unused")
 		public String getPath() {
@@ -114,6 +159,15 @@ public class ResourceExceptionHandler {
 		public void setMetodoHttp(String metodoHttp) {
 			this.metodoHttp = metodoHttp;
 		}
+		@SuppressWarnings("unused")
+		public String[] getCamposErro() {
+			return camposErro;
+		}
+		@SuppressWarnings("unused")
+		public void setCamposErro(String[] campos) {
+			this.camposErro = campos;
+		}
+		
 		
 	}
 }

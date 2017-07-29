@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -32,7 +34,7 @@ public class CategoriaResource {
 	}
 	
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Categoria> salvarCategoria(@RequestBody Categoria categoria){
+	public ResponseEntity<Categoria> salvarCategoria(@Valid @RequestBody Categoria categoria){
 		Categoria categoriaCriada = categoriaService.salvarCategoria(categoria);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("/{id}").buildAndExpand(categoriaCriada.getId()).toUri();
@@ -47,7 +49,7 @@ public class CategoriaResource {
 	}
 	
 	@RequestMapping(method = RequestMethod.PUT)
-	public ResponseEntity<Categoria> atualizarCategoria(@RequestBody Categoria categoria){
+	public ResponseEntity<Categoria> atualizarCategoria(@Valid @RequestBody Categoria categoria){
 		Categoria categoriaAtualizada = categoriaService.atualizarCategoria(categoria);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("{id}").buildAndExpand(categoriaAtualizada.getId()).toUri();

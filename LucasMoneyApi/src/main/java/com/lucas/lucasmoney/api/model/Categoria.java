@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -17,7 +18,9 @@ public class Categoria {
 	private Long id;
 	
 	@NotEmpty(message = "Nome da categoria não pode ser nulo")
+	@Size(message = "Tamanho do nome da categoria deve estar entre 3 e 50",min = 3, max = 50)
 	private String nome;
+	
 	
 	public Categoria(Long id, String nome) {
 		super();
@@ -54,6 +57,7 @@ public class Categoria {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
+	
 
 	@Override
 	public int hashCode() {
