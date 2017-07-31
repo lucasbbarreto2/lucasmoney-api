@@ -36,7 +36,7 @@ public class PessoaResource {
 	public ResponseEntity<Pessoa> buscarPessoa(@PathVariable("pessoa_id") Long pessoa_id){
 				
 		CacheControl cache = CacheControl.maxAge(1, TimeUnit.MINUTES);
-		return ResponseEntity.status(HttpStatus.FOUND).
+		return ResponseEntity.status(HttpStatus.OK).
 				cacheControl(cache).body(pessoaService.buscarPessoa(pessoa_id));
 		
 	}
