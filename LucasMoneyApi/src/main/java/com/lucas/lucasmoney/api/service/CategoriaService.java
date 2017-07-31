@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.lucas.lucasmoney.api.model.Categoria;
 import com.lucas.lucasmoney.api.repository.CategoriaRepository;
+import com.lucas.lucasmoney.api.service.exception.CategoriaJaEncontradaException;
 import com.lucas.lucasmoney.api.service.exception.CategoriaNaoEncontradaException;
-import com.lucas.lucasmoney.api.service.exception.IdDeCategoriaJaExistenteException;
 
 @Service
 public class CategoriaService implements CategoriaServiceInterface {
@@ -26,7 +26,7 @@ public class CategoriaService implements CategoriaServiceInterface {
 	public Categoria salvarCategoria(Categoria categoria) {
 		try{
 			if(buscarCategoria(categoria.getId())!=null)
-				throw new IdDeCategoriaJaExistenteException("ID já existente, impossível gravar");
+				throw new CategoriaJaEncontradaException("ID já existente, impossível gravar");
 		}catch(CategoriaNaoEncontradaException e){
 			return salvar(categoria);
 		}

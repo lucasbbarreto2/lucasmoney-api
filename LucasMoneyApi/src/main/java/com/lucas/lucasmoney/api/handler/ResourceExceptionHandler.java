@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -16,8 +17,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.lucas.lucasmoney.api.service.exception.CategoriaJaEncontradaException;
 import com.lucas.lucasmoney.api.service.exception.CategoriaNaoEncontradaException;
-import com.lucas.lucasmoney.api.service.exception.IdDeCategoriaJaExistenteException;
+import com.lucas.lucasmoney.api.service.exception.PessoaJaExistenteException;
+import com.lucas.lucasmoney.api.service.exception.PessoaNaoEncontradaException;
 
 @ControllerAdvice
 public class ResourceExceptionHandler {
@@ -34,11 +37,11 @@ public class ResourceExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
 	}
 	
-	@ExceptionHandler(IdDeCategoriaJaExistenteException.class)
-	public ResponseEntity<DetalhesErro> handleIdDeCategoriaJaExistenteException(
-			IdDeCategoriaJaExistenteException e, HttpServletRequest request){
+	@ExceptionHandler(CategoriaJaEncontradaException.class)
+	public ResponseEntity<DetalhesErro> handleCategoriaJaExistenteException(
+			CategoriaJaEncontradaException e, HttpServletRequest request){
 		
-		DetalhesErro erro = new DetalhesErro("409 CONFLITO AO GRAVAR NOVA CATEGORIA COM MESMO CÓDIGO",
+		DetalhesErro erro = new DetalhesErro("409 CONFLITO DE CATEGORIA JÁ EXISTENTE",
 				409L, LocalDateTime.now().toString(), 
 				Arrays.asList(e.getMessage()),
 				request.getServletPath(),request.getMethod());
@@ -64,11 +67,47 @@ public class ResourceExceptionHandler {
 	public ResponseEntity<DetalhesErro> handleMethodArgumentNotValidException(
 			MethodArgumentNotValidException e, HttpServletRequest request){
 		
-		DetalhesErro erro = new DetalhesErro("404 PARAMETROS INVÁLIDOS",
-				404L, LocalDateTime.now().toString(),
+		DetalhesErro erro = new DetalhesErro("400 PARAMETROS INVÁLIDOS",
+				400L, LocalDateTime.now().toString(),
 				buscaMensagemErro(e.getBindingResult()),
 				request.getServletPath(), request.getMethod(), 
 				buscaCamposErro(e.getBindingResult()).toArray(new String[0]));
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+	}
+	
+	@ExceptionHandler(PessoaNaoEncontradaException.class)
+	public ResponseEntity<DetalhesErro> handlePessoaNaoEncontradaException(
+			PessoaNaoEncontradaException e, HttpServletRequest request){
+		
+		DetalhesErro erro = new DetalhesErro("404 PESSOA NÃO ENCONTRADA", 
+				404L, LocalDateTime.now().toString(),
+				Arrays.asList(e.getMessage()), 
+				request.getServletPath(), request.getMethod());
+		
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+	}
+	
+	@ExceptionHandler(PessoaJaExistenteException.class)
+	public ResponseEntity<DetalhesErro> handleIdPessoaJaExistenteException(
+			PessoaJaExistenteException e, HttpServletRequest request){
+		
+		DetalhesErro erro = new DetalhesErro("409 CONFLITO - ID JÁ EXISTENTE", 
+				409L, LocalDateTime.now().toString(), 
+				Arrays.asList(e.getMessage()), 
+				request.getServletPath(), request.getMethod());
+		
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
+	}
+	
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<DetalhesErro> handleConstraintViolationException(
+			ConstraintViolationException e, HttpServletRequest request){
+		
+		DetalhesErro erro = new DetalhesErro("400 - PARAMETROS INVÁLIDOS", 
+				400L, LocalDateTime.now().toString(), 
+				Arrays.asList(e.getLocalizedMessage()),
+				request.getServletPath(), request.getMethod());
 		
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
 	}
