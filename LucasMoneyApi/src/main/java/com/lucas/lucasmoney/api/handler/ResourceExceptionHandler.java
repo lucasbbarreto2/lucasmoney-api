@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -104,19 +106,39 @@ public class ResourceExceptionHandler {
 	public ResponseEntity<DetalhesErro> handleConstraintViolationException(
 			ConstraintViolationException e, HttpServletRequest request){
 		
+		buscaCamposErro(e.getConstraintViolations());
+		
 		DetalhesErro erro = new DetalhesErro("400 - PARAMETROS INVÁLIDOS", 
 				400L, LocalDateTime.now().toString(), 
-				Arrays.asList(e.getLocalizedMessage()),
-				request.getServletPath(), request.getMethod());
+				buscaMensagemErro(e.getConstraintViolations()),
+				request.getServletPath(), request.getMethod(),
+				buscaCamposErro(e.getConstraintViolations()).toArray(new String[0]));
 		
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
 	}
 	
+	private List<String> buscaCamposErro(Set<ConstraintViolation<?>> constraintViolation){
+		
+		List<String> listaErro = new ArrayList<>();
+		for(ConstraintViolation<?> cv : constraintViolation)
+			listaErro.add(cv.getPropertyPath().toString());
+
+		return listaErro;
+	}
+	
 	private List<String> buscaCamposErro(BindingResult bindResult){
 		List<String> listaErro = new ArrayList<>();
-		
 		for(FieldError fieldErro : bindResult.getFieldErrors())
 			listaErro.add(fieldErro.getField());
+		
+		return listaErro;
+	}
+	
+	private List<String> buscaMensagemErro(Set<ConstraintViolation<?>> constraintViolation){
+		
+		List<String> listaErro = new ArrayList<>();
+		for(ConstraintViolation<?> cv : constraintViolation)
+			listaErro.add(cv.getMessageTemplate());
 		
 		return listaErro;
 	}
