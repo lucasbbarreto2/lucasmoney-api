@@ -1,12 +1,13 @@
 package com.lucas.lucasmoney.api.resource;
 
-import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.lucas.lucasmoney.api.event.RecursoCriadoEvent;
 import com.lucas.lucasmoney.api.model.Categoria;
 import com.lucas.lucasmoney.api.service.CategoriaServiceInterface;
 
@@ -27,6 +28,9 @@ public class CategoriaResource {
 	@Autowired
 	private CategoriaServiceInterface categoriaService;
 	
+	@Autowired
+	private ApplicationEventPublisher publisher;
+	
 	@RequestMapping(method = RequestMethod.GET)
 	public ResponseEntity<List<Categoria>> listarTodos(){
 		CacheControl cache = CacheControl.maxAge(1, TimeUnit.MINUTES);
@@ -34,11 +38,11 @@ public class CategoriaResource {
 	}
 	
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Categoria> salvarCategoria(@Valid @RequestBody Categoria categoria){
+	public ResponseEntity<Categoria> salvarCategoria(@Valid @RequestBody Categoria categoria,
+			HttpServletResponse response){
 		Categoria categoriaCriada = categoriaService.salvarCategoria(categoria);
-		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-				.path("/{id}").buildAndExpand(categoriaCriada.getId()).toUri();
-		return ResponseEntity.created(location).body(categoriaCriada);
+		publisher.publishEvent(new RecursoCriadoEvent(this, response, categoriaCriada.getId()));
+		return ResponseEntity.status(HttpStatus.CREATED).body(categoriaCriada);
 	}
 	
 	@RequestMapping(value = "/{cat_id}", method = RequestMethod.GET)
@@ -49,11 +53,13 @@ public class CategoriaResource {
 	}
 	
 	@RequestMapping(method = RequestMethod.PUT)
-	public ResponseEntity<Categoria> atualizarCategoria(@Valid @RequestBody Categoria categoria){
+	public ResponseEntity<Categoria> atualizarCategoria(@Valid @RequestBody Categoria categoria,
+			HttpServletResponse response){
 		Categoria categoriaAtualizada = categoriaService.atualizarCategoria(categoria);
-		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-				.path("{id}").buildAndExpand(categoriaAtualizada.getId()).toUri();
-		return ResponseEntity.created(location).body(categoriaAtualizada);
+		
+		publisher.publishEvent(new RecursoCriadoEvent(this, response, categoriaAtualizada.getId()));
+
+		return ResponseEntity.status(HttpStatus.OK).body(categoriaAtualizada);
 	}
 	
 	@RequestMapping(method = RequestMethod.DELETE)

@@ -1,10 +1,13 @@
 package com.lucas.lucasmoney.api.resource;
 
-import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.lucas.lucasmoney.api.event.RecursoCriadoEvent;
 import com.lucas.lucasmoney.api.model.Pessoa;
 import com.lucas.lucasmoney.api.service.PessoaServiceInterface;
 
@@ -24,6 +27,9 @@ public class PessoaResource {
 	
 	@Autowired
 	private PessoaServiceInterface pessoaService;
+	
+	@Autowired
+	private ApplicationEventPublisher publisher;
 	
 	@RequestMapping(method = RequestMethod.GET)
 	public ResponseEntity<List<Pessoa>> listarTodos(){
@@ -55,22 +61,22 @@ public class PessoaResource {
 	}
 	
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Pessoa> salvarPessoa(@RequestBody Pessoa pessoa){
+	public ResponseEntity<Pessoa> salvarPessoa(@Valid @RequestBody Pessoa pessoa, 
+			HttpServletResponse response){
 		Pessoa pessoaSalva = pessoaService.salvarPessoa(pessoa);
 		
-		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().
-				path("{pessoa_id}").buildAndExpand(pessoaSalva.getId()).toUri();
+		publisher.publishEvent(new RecursoCriadoEvent(this, response, pessoaSalva.getId()));
 		
-		return ResponseEntity.created(uri).body(pessoaSalva);
+		return ResponseEntity.status(HttpStatus.CREATED).body(pessoaSalva);
 	}
 	
 	@RequestMapping(method = RequestMethod.PUT)
-	public ResponseEntity<Pessoa> ataulizarPessoa(@RequestBody Pessoa pessoa){
+	public ResponseEntity<Pessoa> ataulizarPessoa(@Valid @RequestBody Pessoa pessoa, 
+			HttpServletResponse response){
 		Pessoa pessoaAtual = pessoaService.atualizarPessoa(pessoa);
 		
-		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().
-		path("{posseoa_id}").buildAndExpand(pessoaAtual.getId()).toUri();
+		publisher.publishEvent(new RecursoCriadoEvent(this, response, pessoaAtual.getId()));
 		
-		return ResponseEntity.created(uri).body(pessoaAtual);
+		return ResponseEntity.status(HttpStatus.OK).body(pessoaAtual);
 	}
 }
